@@ -1,0 +1,11 @@
+# Visual Studio Code
+.vscode
+
+# Gradle
+.gradle
+build
+
+# React
+build
+node_modules
+package-lock.json
