@@ -6,10 +6,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
-public class HelloController {
-
+public class ApiController {
     @GetMapping("/hello")
     public String hello() {
         return "Hello from the server!";
+    }
+    @GetMapping("/bye")
+    public String bye() {
+        return "Bye from the server!";
     }
 }

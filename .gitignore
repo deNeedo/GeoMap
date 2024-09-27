@@ -3,6 +3,7 @@
 
 # Gradle
 .gradle
+bin
 build
 
 # React
