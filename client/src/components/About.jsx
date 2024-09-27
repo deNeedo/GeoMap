@@ -1,5 +1,4 @@
 import React from "react";
-import "../styles/App.css"
 
 const About = () => {
     return <h1> About Page </h1>;

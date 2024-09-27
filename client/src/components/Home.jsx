@@ -1,23 +1,9 @@
-import React, {useEffect, useState} from "react";
-import axios from "axios";
-import "../styles/App.css"
+import React from "react";
 
 const Home = () => {
-    const [message, setMessage] = useState("");
-	useEffect(() => {
-        axios.get("http://localhost:8080/api/hello")
-		.then(response => {
-			setMessage(response.data);
-		})
-		.catch(error => {
-			console.error("There was an error!", error);
-		});
-	}, []);
 	return (
-		<div className="App">
-			<h1> {message} </h1>
-		</div>
-	);
+		<h1> Home Page </h1>
+	)
 };
 
 export default Home;
