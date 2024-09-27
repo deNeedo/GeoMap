@@ -11,8 +11,4 @@ public class ApiController {
     public String hello() {
         return "Hello from the server!";
     }
-    @GetMapping("/bye")
-    public String bye() {
-        return "Bye from the server!";
-    }
 }

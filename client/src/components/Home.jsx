@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import "./App.css";
+import "../styles/App.css"
 
-function App() {
-	const [message, setMessage] = useState("");
+const Home = () => {
+    const [message, setMessage] = useState("");
 	useEffect(() => {
-        axios.get("http://localhost:8080/api/bye")
+        axios.get("http://localhost:8080/api/hello")
 		.then(response => {
 			setMessage(response.data);
 		})
@@ -18,6 +18,8 @@ function App() {
 			<h1> {message} </h1>
 		</div>
 	);
-}
+};
 
-export default App;
+export default Home;
+
+	
