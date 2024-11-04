@@ -88,7 +88,7 @@ const MapView = () => {
 
     return (
         <div className={Styles.container}>
-            {position.lat != null ? (
+            {position.lat == null ? (
                 <>
                     <div className={Styles.map}>
                             <MapContainer style={{height:"100%", width:"100%"}} center={position} zoom={8}>
@@ -115,7 +115,7 @@ const MapView = () => {
                         <button onClick={loadCollection}> Load collection </button>
                     </div>
                 </>
-            ) : ("Error while fetching your IP location")}
+            ) : <> Error while fetching your IP location </>}
         </div>
     );
 };
