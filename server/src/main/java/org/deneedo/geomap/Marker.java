@@ -1,19 +1,23 @@
 package org.deneedo.geomap;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "markers")
 public class Marker {
-    private double lat;
-    private double lng;
-    private int elev;
-
-    public double getLat() {
-        return this.lat;
-    }
-
-    public double getLng() {
-        return this.lng;
-    }
-
-    public int getElev() {
-        return this.elev;
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private Double lat;
+    private Double lng;
+    private Integer elev;
+    // Getters
+    public Long getId() {return id;}
+    public Double getLat() {return lat;}
+    public Double getLng() {return lng;}
+    public Integer getElev() {return elev;}
 }

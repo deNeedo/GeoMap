@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {MapContainer, TileLayer, Marker, Popup, useMapEvents} from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import Styles from "../styles/MapView.module.css"
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -12,11 +12,9 @@ L.Icon.Default.mergeOptions({
 });
 
 const MapView = () => {
-    // IP coords
     const [position, setPosition] = useState({lat: null, lon: null});
-    // list of markers
     const [markers, setMarkers] = useState([]);
-
+    
     const saveCollection = async () => {
         if (markers.length === 0) {
             console.log("Add some markers before saving...")
@@ -26,24 +24,43 @@ const MapView = () => {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        'Username': 'Test'
+                        "Username": "Test"
                     },
                     body: JSON.stringify(markers),
                 });
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error("Network response was not ok");
                 }
-                const data = await response.text(); // Parse the JSON response
-                console.log('Success:', data);
+                const data = await response.text();
+                console.log("Success: ", data);
             } catch (error) {
-                console.error('Error:', error);
+                console.error("Error: ", error);
             }
         }
     }
 
-    const loadCollection = () => {
-        console.log("Loading...")
-    }
+    const loadCollection = async () => {
+        if (markers.length !== 0) {
+            console.log("Clear all the markers before loading...")
+        } else {
+            try {
+                const response = await fetch("http://10.147.17.201:8080/loadCollection", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Username": "Test"
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                setMarkers(data);
+            } catch (error) {
+                console.error("Error: ", error);
+            }
+        }
+    };
 
     const LocationLogger = () => {
         useMapEvents({
@@ -84,39 +101,38 @@ const MapView = () => {
 
     useEffect(() => {
         fetchLocation();
-    }, [position]);
+    }, []);
 
     return (
-        <div className={Styles.container}>
-            {position.lat == null ? (
-                <>
-                    <div className={Styles.map}>
-                            <MapContainer style={{height:"100%", width:"100%"}} center={position} zoom={8}>
-                                <TileLayer
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
-                                />
-                                <LocationLogger />
-                                {markers.map((marker, index) => (
-                                    <Marker key={index} position={marker}>
-                                        <Popup>
-                                            <p> Latitude: {marker.lat} </p>
-                                            <p> Longitude: {marker.lng} </p>
-                                            <p> Elevation: {marker.elev} </p>
-                                            <button onClick={(e) => {e.stopPropagation(); deleteMarker(index);}}> Delete </button>
-                                        </Popup>
-                                    </Marker>
-                                ))}
-                                <Marker position={position}> <Popup> Your IP address location </Popup> </Marker>
-                            </MapContainer>
-                    </div>
-                    <div className={Styles.bottomMenu}>
-                        <button onClick={saveCollection}> Save collection </button>
-                        <button onClick={loadCollection}> Load collection </button>
-                    </div>
-                </>
-            ) : <> Error while fetching your IP location </>}
-        </div>
+        <>
+        {position.lat != null ? (
+            <div className={Styles.container}>
+                <div className={Styles.map}>
+                        <MapContainer style={{height:"100%", width:"100%"}} center={position} zoom={8}>
+                            <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                            />
+                            <LocationLogger />
+                            {markers.map((marker, index) => (
+                                <Marker key={index} position={marker}>
+                                    <Popup>
+                                        <p> Latitude: {marker.lat} </p>
+                                        <p> Longitude: {marker.lng} </p>
+                                        <p> Elevation: {marker.elev} </p>
+                                        <button onClick={(e) => {e.stopPropagation(); deleteMarker(index);}}> Delete </button>
+                                    </Popup>
+                                </Marker>
+                            ))}
+                            <Marker position={position}> <Popup> Your IP address location </Popup> </Marker>
+                        </MapContainer>
+                </div>
+                <div className={Styles.bottomMenu}>
+                    <button onClick={saveCollection}> Save collection </button>
+                    <button onClick={loadCollection}> Load collection </button>
+                </div>
+            </div>
+        ) : "Error while fetching your IP location"} </>
     );
 };
 
