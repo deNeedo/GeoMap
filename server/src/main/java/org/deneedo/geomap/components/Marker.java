@@ -1,4 +1,4 @@
-package org.deneedo.geomap;
+package org.deneedo.geomap.components;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +15,7 @@ public class Marker {
     private Double lat;
     private Double lng;
     private Integer elev;
-    // Getters
+
     public Long getId() {return id;}
     public Double getLat() {return lat;}
     public Double getLng() {return lng;}

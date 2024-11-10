@@ -20,7 +20,7 @@ const MapView = () => {
             console.log("Add some markers before saving...")
         } else {
             try {
-                const response = await fetch("http://10.147.17.201:8080/saveCollection", {
+                const response = await fetch(`http://10.147.17.201:8080/saveCollection`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -44,7 +44,7 @@ const MapView = () => {
             console.log("Clear all the markers before loading...")
         } else {
             try {
-                const response = await fetch("http://10.147.17.201:8080/loadCollection", {
+                const response = await fetch(`http://10.147.17.201:8080/loadCollection`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -91,7 +91,7 @@ const MapView = () => {
 
     const fetchLocation = async () => {
         try {
-            const response = await fetch('https://get.geojs.io/v1/ip/geo.json');
+            const response = await fetch(`https://get.geojs.io/v1/ip/geo.json`);
             const data = await response.json();
             setPosition({lat: data.latitude, lon: data.longitude});
         } catch (err) {
