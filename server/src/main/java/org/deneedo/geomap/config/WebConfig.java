@@ -1,4 +1,4 @@
-package org.deneedo.geomap;
+package org.deneedo.geomap.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
@@ -9,9 +9,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
-        registry.addMapping("/**")
-            .allowedOrigins("http://10.147.17.201:3000")
-            .allowedMethods("GET", "POST", "PUT", "DELETE")
-            .allowedHeaders("*");
+        registry.addMapping("/**") // Allow CORS for all endpoints
+            .allowedOrigins("http://10.147.17.201:3000") // Specify allowed origins
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Specify allowed methods
+            .allowedHeaders("*") // Allow all headers
+            .allowCredentials(true); // Allow credentials
     }
 }
