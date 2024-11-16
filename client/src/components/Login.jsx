@@ -1,9 +1,11 @@
 import React, {useState} from "react";
+import {useAuth} from "./AuthContext";
 
 const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    
+    const {login} = useAuth();
+
     const handleLogin = async () => {
         try {
             const response = await fetch(`http://10.147.17.201:8080/login`, {
@@ -16,8 +18,7 @@ const Login = () => {
             if (!response.ok) {
                 throw new Error("Network response was not ok");
             }
-            const data = await response.text();
-            console.log(data);
+            const data = await response.text(); login(data);
         } catch (error) {
             console.error("Error during registration:", error);
         }

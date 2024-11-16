@@ -3,6 +3,7 @@ package org.deneedo.geomap.controllers;
 import java.util.UUID;
 
 import org.deneedo.geomap.components.EmailService;
+import org.deneedo.geomap.components.JsonWebToken;
 import org.deneedo.geomap.components.User;
 import org.deneedo.geomap.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ public class AuthController {
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private EmailService emailService;
+    @Autowired private JsonWebToken jwt;
 
     private static String generateVerificationToken() {
         return UUID.randomUUID().toString();
@@ -24,7 +26,7 @@ public class AuthController {
     @PostMapping("/login") public String login(@RequestBody User user) {
         User foundUser = userRepository.findByUsername(user.getUsername());
         if (foundUser != null && foundUser.isVerified() && passwordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
-            return "Login successful!";
+            return jwt.generateToken(foundUser.getUsername());
         }
         return "Invalid email or password!";
     }
