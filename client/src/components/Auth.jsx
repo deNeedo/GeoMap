@@ -6,7 +6,6 @@ const Auth = () => {
     const location = useLocation();
 
     useEffect(() => {
-        console.log("test")
         const queryParams = new URLSearchParams(location.search);
         const token = queryParams.get("token");
         if (token) {
