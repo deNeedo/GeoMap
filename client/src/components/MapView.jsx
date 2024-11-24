@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -8,6 +8,19 @@ import Styles from "../styles/MapView.module.css"
 
 Chart.register(...registerables);
 
+const chart_options = {
+    responsive: true,
+    plugins: {
+        legend: {
+            position: "bottom"
+        },
+        title: {
+            display: true,
+            text: "Terrain Profile",
+        },
+    },
+};
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
@@ -16,61 +29,100 @@ L.Icon.Default.mergeOptions({
 });
 
 const MapView = () => {
+    const [message, setMessage] = useState("");
+    const [area, setArea] = useState("")
     const [position, setPosition] = useState({lat: null, lon: null});
     const [markers, setMarkers] = useState([]);
     const [lineCoordinates, setLineCoordinates] = useState([]);
-    const [distance, setDistance] = useState(null);
-    const [elevationData, setElevationData] = useState([]);
-    
+    const [chartData, setChartData] = useState({
+        labels: [],
+        datasets: [{
+            label: "Elevation (m)",
+            data: [],
+            fill: false,
+        }]
+    })
+
     const saveCollection = async () => {
         if (markers.length === 0) {
-            console.log("Add some markers before saving...")
-        } else {
-            try {
-                const response = await fetch(`http://10.147.17.201:8080/saveCollection`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Username": "Test"
-                    },
-                    body: JSON.stringify(markers),
-                });
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                const data = await response.text();
-                console.log("Success: ", data);
-            } catch (error) {
-                console.error("Error: ", error);
+            console.log("Add some markers before saving..."); return;
+        }
+        try {
+            const response = await fetch(`http://10.147.17.201:8080/saveCollection`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Username": "Test"
+                },
+                body: JSON.stringify(markers),
+            });
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
             }
+            const data = await response.text();
+            console.log("Success: ", data);
+        } catch (error) {
+            console.error("Error: ", error);
         }
     }
 
     const loadCollection = async () => {
         if (markers.length !== 0) {
-            console.log("Clear all the markers before loading...")
-        } else {
-            try {
-                const response = await fetch(`http://10.147.17.201:8080/loadCollection`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Username": "Test"
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                setMarkers(data);
-            } catch (error) {
-                console.error("Error: ", error);
+            console.log("Clear all the markers before loading..."); return;
+        }
+        try {
+            const response = await fetch(`http://10.147.17.201:8080/loadCollection`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Username": "Test"
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
+            const data = await response.json();
+            setMarkers(data);
+        } catch (error) {
+            console.error("Error: ", error);
         }
     };
 
+    const saveCollectionLocally = () => {
+        if (markers.length === 0) {
+            console.log("Add some markers before saving..."); return;
+        }
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + markers.map(marker => `${marker.lat},${marker.lng},${marker.elev}`).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "markers.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const loadCollectionLocally = (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+            console.log("No file selected."); return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            const lines = text.split("\n");
+            const loadedMarkers = lines.map(line => {
+                const [lat, lng, elev] = line.split(",").map(Number);
+                return {lat, lng, elev};
+            }).filter(marker => !isNaN(marker.lat) && !isNaN(marker.lng) && !isNaN(marker.elev));
+            setMarkers(loadedMarkers);
+        };
+        reader.readAsText(file);
+    };
+
     const greatCirclePoints = (lat1, lon1, lat2, lon2) => {
-        const points = [];
+        const points = [[lat1, lon1]];
         const R = 6371;
         const slat1 = Math.sin(lat1 * (Math.PI / 180));
         const slat2 = Math.sin(lat2 * (Math.PI / 180));
@@ -79,11 +131,11 @@ const MapView = () => {
         const cdLon = Math.cos((lon2 - lon1) * (Math.PI / 180));
         const cDel = slat1 * slat2 + clat1 * clat2 * cdLon
         const c = Math.acos(cDel)
-        setDistance(R * c)
+        const distance = R * c;
         const numPoints = Math.floor(R * c)
         const sinDLon = Math.sin((lon2 - lon1) * (Math.PI / 180))
         const alph = Math.atan2(sinDLon * clat1 * clat2, slat2 - slat1 * cDel)
-        for (let m = 0; m <= numPoints; m++) {
+        for (let m = 1; m <= numPoints - 2; m++) {
             const del_m = c / numPoints * m;
             const slat_m = slat1 * Math.cos(del_m) + clat1 * Math.sin(del_m) * Math.cos(alph);
             const lat_m = Math.asin(slat_m)
@@ -91,7 +143,8 @@ const MapView = () => {
             const lon_m = lon1 + del_lon_m * (180 / Math.PI);
             points.push([lat_m * (180 / Math.PI), lon_m]);
         }
-        return points;
+        points.push([lat2, lon2])
+        return [points, distance];
     };
 
     const LocationLogger = () => {
@@ -99,13 +152,7 @@ const MapView = () => {
             click: async (e) => {
                 const {lat, lng} = e.latlng;
                 const elev = await fetchElevation(lat, lng);
-                setMarkers([...markers, {lat, lng, elev}]);
-                if (markers.length > 0) {
-                    const lastMarker = markers[markers.length - 1];
-                    const points = greatCirclePoints(lastMarker.lat, lastMarker.lng, lat, lng);
-                    setLineCoordinates(points);
-                    await fetchElevationAlongPath(points);
-                }
+                setMarkers(prevMarkers => [...prevMarkers, {lat, lng, elev}]);
             }
         });
         return null;
@@ -114,6 +161,52 @@ const MapView = () => {
     const deleteMarker = (index) => {
         setMarkers(markers.filter((_, i) => i !== index));
     };
+
+    const calculateDistance = useCallback(async() => {
+        if (markers.length >= 2) {
+            let totalDistance = 0; let totalPoints = []; let totalLabels = []; let totalElevations = []; let counter = 0
+            for (let m = 1; m < markers.length; m += 1) {
+                const [points, distance] = greatCirclePoints(markers[m - 1].lat, markers[m - 1].lng, markers[m].lat, markers[m].lng);
+                totalDistance += distance; totalPoints.push(points);
+                const elevations = await fetchElevationAlongPath(points);
+                elevations.forEach(elem => {
+                    totalElevations.push(elem);
+                    totalLabels.push(counter);
+                    counter += 1
+                })
+            }
+            setLineCoordinates(totalPoints);
+            setMessage(`Distance: ${totalDistance.toFixed(3)}km`)
+            setChartData({
+                labels: totalLabels,
+                datasets: [{
+                    label: "Elevation (m)",
+                    data: totalElevations,
+                    fill: false,
+                }]
+            });
+        } else {
+            setChartData({
+                labels: [],
+                datasets: [{
+                    label: 'Elevation (m)',
+                    data: [],
+                    fill: false,
+                }],
+            })
+            setLineCoordinates([]);
+            setMessage(``)
+        }
+    }, [markers])
+
+    const closeCircle = () => {
+        if (markers[0].lat !== markers[markers.length - 1].lat && markers[0].lng !== markers[markers.length - 1].lng && markers.length > 2) {
+            const lat = markers[0].lat
+            const lng = markers[0].lng
+            const elev = markers[0].elev
+            setMarkers(prevMarkers => [...prevMarkers, {lat, lng, elev}]);
+        }
+    }
 
     const fetchElevation = async (lat, lng) => {
         try {
@@ -128,17 +221,56 @@ const MapView = () => {
     };
 
     const fetchElevationAlongPath = async (points) => {
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        const elevations = [];
+        const elevations = []
+        let query = ""; let counter = 0
         for (const point of points) {
-            const elev = await fetchElevation(point[0], point[1]);
-            elevations.push(elev);
-            await delay(200);
+            query += `${point[0]},${point[1]}|`;
         }
-        setElevationData(elevations);
+        query = query.slice(0, -1);
+        try {    
+            const response = await fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${query}`);
+            const data = await response.json();
+            points.forEach(() => {
+                if (data.results && data.results[counter]) {
+                    elevations.push(data.results[counter].elevation)
+                }
+                counter += 1
+            });
+            return elevations
+        } catch (error) {
+            return []
+        }
     };
+
+    const calculateArea = () => {
+        if (markers.length > 3 && markers[0].lat === markers[markers.length - 1].lat && markers[0].lng === markers[markers.length - 1].lng) {
+            const R = 6371
+            let temp = 0
+            for (let m = 0; m < markers.length - 1; m += 1) {
+                let curr_lat = markers[m].lat * (Math.PI / 180)
+                let next_lat = markers[m + 1].lat * (Math.PI / 180)
+                let curr_lon = markers[m].lng * (Math.PI / 180)
+                let next_lon = markers[m + 1].lng * (Math.PI / 180)
+                let first_part = Math.sin((next_lat + curr_lat) / 2) / Math.cos((next_lat - curr_lat) / 2)
+                let second_part = Math.tan((next_lon - curr_lon) / 2)
+                temp += Math.atan(first_part * second_part) * 2
+            }
+            temp = temp * Math.pow(R, 2)
+            setArea(`Area: ${Math.abs(temp).toFixed(3)}km^2`)
+            // let temp = 0; let next = 0; let curr = 0; let prev = 0;
+            // for (let m = 0; m < markers.length - 1; m += 1) {
+            //     next = markers[m + 1].lng * (Math.PI / 180);
+            //     curr = Math.sin(markers[m].lat * (Math.PI / 180))
+            //     if (m === 0) {prev = markers[markers.length - 1].lng * (Math.PI / 180)}
+            //     else {prev = markers[m - 1].lng * (Math.PI / 180)}
+            //     console.log(next, prev, curr)
+            //     temp += (next - prev) * curr
+            // }
+            // setArea(`Area: ${(temp * (Math.pow(R, 2) / 2))}`)
+        } else {
+            setArea(`Need to close the polygon first`)
+        }
+    }
 
     const fetchLocation = async () => {
         try {
@@ -150,36 +282,25 @@ const MapView = () => {
         }
     };
 
+    const clearMarkers = () => {
+        setMarkers([])
+        setChartData({
+            labels: [],
+            datasets: [{
+                label: 'Elevation (m)',
+                data: [],
+                fill: false,
+            }],
+        })
+    }
+
+    useEffect(() => {
+        calculateDistance()
+    }, [markers, calculateDistance])
+
     useEffect(() => {
         fetchLocation();
-    }, []);
-
-    useEffect(() => {
-        console.log(distance);
-    }, [distance]);
-
-    const data = {
-        labels: lineCoordinates.map((_, index) => index + 1),
-        datasets: [
-            {
-                label: 'Elevation (m)',
-                data: elevationData,
-                fill: false,
-                backgroundColor: 'blue',
-                borderColor: 'blue',
-            },
-        ],
-    };
-
-    const dateLineCoordinates = [
-        [90, 180],
-        [-90, 180], 
-    ];
-
-    const dateLineCoordinates2 = [
-        [90, -180],
-        [-90, -180],
-    ];
+    }, [position]);
 
     return (
         <>
@@ -206,16 +327,22 @@ const MapView = () => {
                             {lineCoordinates.length > 0 && (
                                 <Polyline positions={lineCoordinates} color="blue" />
                             )}
-                            <Polyline positions={dateLineCoordinates} color="red" dashArray="10, 10" />
-                            <Polyline positions={dateLineCoordinates2} color="red" dashArray="10, 10" />
+                            <Polyline positions={[[90, 180], [-90, 180]]} color="red" dashArray="10, 10" />
+                            <Polyline positions={[[90, -180], [-90, -180]]} color="red" dashArray="10, 10" />
                         </MapContainer>
                 </div>
                 <div className={Styles.bottomMenu}>
-                    <button onClick={saveCollection}> Save collection </button>
-                    <button onClick={loadCollection}> Load collection </button>
-                    <div>
-                        <h3> Terrain Profile </h3>
-                        <Line data={data} />
+                    <button onClick={saveCollection}> Save collection on server </button>
+                    <button onClick={loadCollection}> Load collection from server </button>
+                    <button onClick={saveCollectionLocally}> Save collection as a file </button>
+                    <input type="file" accept=".csv" onChange={loadCollectionLocally} placeholder="Load collection from a file"/>
+                    <button onClick={clearMarkers}> Clear markers </button>
+                    <button onClick={closeCircle}> Close polygon </button>
+                    <button onClick={calculateArea}> Calculate Area </button>
+                    <div> {message} </div>
+                    <div> {area} </div>
+                    <div className={Styles.chart}>
+                        <Line options={chart_options} data={chartData} />
                     </div>
                 </div>
             </div>

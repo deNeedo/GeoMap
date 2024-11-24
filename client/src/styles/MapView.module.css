@@ -11,6 +11,7 @@
     grid-row: 1;
     height: 90vh;
     width: 90vw;
+    z-index: 0;
 }
 
 .bottomMenu {
@@ -18,4 +19,26 @@
     background-color: #aaa;
     height: 10vh;
     width: 90vw;
+}
+
+.chart {
+    display: flex;
+    width: 20vw;
+    height: 20vh;
+    background-color: #fff4;
+    position: fixed;
+    bottom: 15vh;
+    right: 2vw;
+    z-index: 1;
+    padding-left: 1vw;
+    padding-right: 1vw;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+
+}
+
+.chart:hover {
+    width: 60vw;
+    height: 60vh;
+    background-color: #fffc;
 }
