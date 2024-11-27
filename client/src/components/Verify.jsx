@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {useLocation} from "react-router-dom";
 
-const Auth = () => {
+const Verify = () => {
     const [message, setMessage] = useState("");
     const location = useLocation();
 
@@ -44,4 +44,4 @@ const Auth = () => {
     );
 };
 
-export default Auth;
+export default Verify;

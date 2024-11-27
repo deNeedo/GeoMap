@@ -1,25 +1,23 @@
-* {
+html, body {
     margin: 0;
     padding: 0;
 }
 
-.mainContainer {
+.container {
     display: grid;
 }
 
-.sideMenu {
-    grid-column: 1;
-    background-color: #aaa;
-    height: 100vh;
-    width: 10vw;
-    position: fixed;
-    top: 0;
-    left: 0;
+.pageContent {
+    grid-row: 1;
+    height: 90vh;
+    width: 100vw;
 }
 
-.pageContent {
-    grid-column: 2;
-    height: 100vh;
-    width: 90vw;
-    margin-left: 10vw;
+.bottomMenu {
+    grid-row: 2;
+    background-color: #999;
+    height: 10vh;
+    width: 100vw;
+    position: fixed;
+    top: 90vh;
 }

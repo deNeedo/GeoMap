@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import {Line} from 'react-chartjs-2';
 import {Chart, registerables} from 'chart.js';
 import Styles from "../styles/MapView.module.css"
+import { useAuth } from "./AuthContext";
 
 Chart.register(...registerables);
 
@@ -29,6 +30,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const MapView = () => {
+    const {authToken} = useAuth();
     const [message, setMessage] = useState("");
     const [area, setArea] = useState("")
     const [position, setPosition] = useState({lat: null, lon: null});
@@ -52,10 +54,11 @@ const MapView = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Username": "Test"
+                    "Auth-Token": authToken
                 },
                 body: JSON.stringify(markers),
             });
+            console.log(response)
             if (!response.ok) {
                 throw new Error("Network response was not ok");
             }
@@ -75,7 +78,7 @@ const MapView = () => {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    "Username": "Test"
+                    "Auth-Token": authToken
                 },
             });
             if (!response.ok) {
@@ -121,7 +124,7 @@ const MapView = () => {
         reader.readAsText(file);
     };
 
-    const greatCirclePoints = (lat1, lon1, lat2, lon2) => {
+    const greatCirclePoints = (lat1, lon1, lat2, lon2, flag) => {
         const points = [[lat1, lon1]];
         const R = 6371;
         const slat1 = Math.sin(lat1 * (Math.PI / 180));
@@ -143,7 +146,7 @@ const MapView = () => {
             const lon_m = lon1 + del_lon_m * (180 / Math.PI);
             points.push([lat_m * (180 / Math.PI), lon_m]);
         }
-        points.push([lat2, lon2])
+        if (flag) {points.push([lat2, lon2])}
         return [points, distance];
     };
 
@@ -159,21 +162,33 @@ const MapView = () => {
     };
 
     const deleteMarker = (index) => {
+        
         setMarkers(markers.filter((_, i) => i !== index));
     };
 
     const calculateDistance = useCallback(async() => {
         if (markers.length >= 2) {
-            let totalDistance = 0; let totalPoints = []; let totalLabels = []; let totalElevations = []; let counter = 0
+            let totalDistance = 0; let totalPoints = []; let totalLabels = []; let totalElevations = []; let counter = 0; let flag = false;
             for (let m = 1; m < markers.length; m += 1) {
-                const [points, distance] = greatCirclePoints(markers[m - 1].lat, markers[m - 1].lng, markers[m].lat, markers[m].lng);
-                totalDistance += distance; totalPoints.push(points);
-                const elevations = await fetchElevationAlongPath(points);
-                elevations.forEach(elem => {
-                    totalElevations.push(elem);
-                    totalLabels.push(counter);
-                    counter += 1
-                })
+                if (m === markers.length - 1) {flag = true}
+                const [points, distance] = greatCirclePoints(markers[m - 1].lat, markers[m - 1].lng, markers[m].lat, markers[m].lng, flag);
+                totalDistance += distance;
+                const repetitions = Math.ceil(points.length / 100)
+                for (let n = 0; n < repetitions; n += 1) {
+                    let trimmedPoints
+                    if (n === repetitions - 1) {
+                        trimmedPoints = points.slice(100 * n, points.length)
+                    } else {
+                        trimmedPoints = points.slice(100 * n, 100 * (n + 1) - 1)
+                    }
+                    trimmedPoints.forEach((point) => {totalPoints.push(point);})
+                    const elevations = await fetchElevationAlongPath(trimmedPoints);
+                    for (let b = 0; b < elevations.length; b += 1) {
+                        totalElevations.push(elevations[b]);
+                        totalLabels.push(counter);
+                        counter += 1;
+                    }
+                }
             }
             setLineCoordinates(totalPoints);
             setMessage(`Distance: ${totalDistance.toFixed(3)}km`)
@@ -199,12 +214,14 @@ const MapView = () => {
         }
     }, [markers])
 
-    const closeCircle = () => {
-        if (markers[0].lat !== markers[markers.length - 1].lat && markers[0].lng !== markers[markers.length - 1].lng && markers.length > 2) {
-            const lat = markers[0].lat
-            const lng = markers[0].lng
-            const elev = markers[0].elev
-            setMarkers(prevMarkers => [...prevMarkers, {lat, lng, elev}]);
+    const closePolygon = () => {
+        if (markers.length > 2) {
+            if (markers[0].lat !== markers[markers.length - 1].lat && markers[0].lng !== markers[markers.length - 1].lng && markers.length > 2) {
+                const lat = markers[0].lat
+                const lng = markers[0].lng
+                const elev = markers[0].elev
+                setMarkers(prevMarkers => [...prevMarkers, {lat, lng, elev}]);
+            }
         }
     }
 
@@ -216,7 +233,7 @@ const MapView = () => {
                 return data.results[0].elevation
             }
         } catch (error) {
-            return null
+            return []
         }
     };
 
@@ -227,7 +244,7 @@ const MapView = () => {
             query += `${point[0]},${point[1]}|`;
         }
         query = query.slice(0, -1);
-        try {    
+        try {
             const response = await fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${query}`);
             const data = await response.json();
             points.forEach(() => {
@@ -306,6 +323,20 @@ const MapView = () => {
         <>
         {position.lat != null ? (
             <div className={Styles.container}>
+                <div className={Styles.sideMenu}>
+                    <button onClick={saveCollection}> Save collection on server </button>
+                    <button onClick={loadCollection}> Load collection from server </button>
+                    <button onClick={saveCollectionLocally}> Save collection as a file </button>
+                    <input type="file" accept=".csv" onChange={loadCollectionLocally} placeholder="Load collection from a file"/>
+                    <button onClick={clearMarkers}> Clear markers </button>
+                    <button onClick={closePolygon}> Close polygon </button>
+                    <button onClick={calculateArea}> Calculate Area </button>
+                    <div> {message} </div>
+                    <div> {area} </div>
+                    <div className={Styles.chart}>
+                        <Line options={chart_options} data={chartData} />
+                    </div>
+                </div>
                 <div className={Styles.map}>
                         <MapContainer style={{height:"100%", width:"100%"}} center={position} zoom={8} worldCopyJump={true}>
                             <TileLayer
@@ -331,22 +362,8 @@ const MapView = () => {
                             <Polyline positions={[[90, -180], [-90, -180]]} color="red" dashArray="10, 10" />
                         </MapContainer>
                 </div>
-                <div className={Styles.bottomMenu}>
-                    <button onClick={saveCollection}> Save collection on server </button>
-                    <button onClick={loadCollection}> Load collection from server </button>
-                    <button onClick={saveCollectionLocally}> Save collection as a file </button>
-                    <input type="file" accept=".csv" onChange={loadCollectionLocally} placeholder="Load collection from a file"/>
-                    <button onClick={clearMarkers}> Clear markers </button>
-                    <button onClick={closeCircle}> Close polygon </button>
-                    <button onClick={calculateArea}> Calculate Area </button>
-                    <div> {message} </div>
-                    <div> {area} </div>
-                    <div className={Styles.chart}>
-                        <Line options={chart_options} data={chartData} />
-                    </div>
-                </div>
             </div>
-        ) : "Error while fetching your IP location"} </>
+        ) : "Could not determine your IP location"} </>
     );
 };
 
