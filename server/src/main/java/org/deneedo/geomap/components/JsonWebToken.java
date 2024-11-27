@@ -18,7 +18,11 @@ public class JsonWebToken {
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", "user");
-        return createToken(claims, username);
+        return this.createToken(claims, username);
+    }
+
+    public boolean validateToken(String token, String username) {
+        return (username.equals(this.extractAllClaims(token).getSubject()) && !this.isTokenExpired(token));
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
@@ -27,18 +31,9 @@ public class JsonWebToken {
             .setClaims(claims)
             .setSubject(subject)
             .setIssuedAt(new Date(System.currentTimeMillis()))
-            .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // Token valid for 10 hours
+            .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
             .signWith(SignatureAlgorithm.HS256, decodedKey)
             .compact();
-    }
-
-    public boolean validateToken(String token, String username) {
-        final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(username) && !isTokenExpired(token));
-    }
-
-    private String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
     }
 
     private Claims extractAllClaims(String token) {
@@ -46,6 +41,6 @@ public class JsonWebToken {
     }
 
     private boolean isTokenExpired(String token) {
-        return extractAllClaims(token).getExpiration().before(new Date());
+        return this.extractAllClaims(token).getExpiration().before(new Date());
     }
 }

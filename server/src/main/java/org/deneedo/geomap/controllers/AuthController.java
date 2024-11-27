@@ -1,5 +1,6 @@
 package org.deneedo.geomap.controllers;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.deneedo.geomap.components.EmailService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,9 +28,12 @@ public class AuthController {
     @PostMapping("/login") public String login(@RequestBody User user) {
         User foundUser = userRepository.findByUsername(user.getUsername());
         if (foundUser != null && foundUser.isVerified() && passwordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
-            return jwt.generateToken(foundUser.getUsername());
+            String token = jwt.generateToken(foundUser.getUsername());
+            foundUser.setVerificationToken(token);
+            userRepository.save(foundUser);
+            return token;
         }
-        return "Invalid email or password!";
+        return null;
     }
     @PostMapping("/register") public String register(@RequestBody User user) {
         if (userRepository.findByUsername(user.getUsername()) != null) {
@@ -45,6 +50,15 @@ public class AuthController {
         emailService.sendVerificationEmail(user.getEmail(), token);
         return "User registered successfully!";
     }
+    @PostMapping("/logout1") public String logout(@RequestHeader Map<String, String> headers) {
+        User foundUser = userRepository.findByVerificationToken(headers.get("auth-token"));
+        if (foundUser != null) {
+            foundUser.setVerificationToken(null);
+            userRepository.save(foundUser);
+        }
+        return null;
+    }
+
     @PostMapping("/verify") public String verifyEmail(@RequestParam String token) {
         User user = userRepository.findByVerificationToken(token);
         if (user != null) {

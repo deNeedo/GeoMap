@@ -18,9 +18,11 @@ const Login = () => {
             if (!response.ok) {
                 throw new Error("Network response was not ok");
             }
-            const data = await response.text(); login(data);
+            const data = await response.text();
+            if (data !== "") {login(data);}
+            else {console.log("Login failure");}
         } catch (error) {
-            console.error("Error during registration:", error);
+            console.error("Unexpected error during login: ", error);
         }
     };
 
