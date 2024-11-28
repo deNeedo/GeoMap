@@ -1,0 +1,16 @@
+.container {
+    display: grid;
+}
+
+.messageBox {
+    grid-row: 1;
+    height: 100vh;
+    width: 100vw;
+    background-color: #222;
+}
+
+.message {
+    margin: 5vw 0vw 0vw 5vw;
+    font-size: 3vh;
+    font-weight: bold;
+}

@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {useLocation} from "react-router-dom";
+import Styles from "../styles/Verify.module.css"
 
 const Verify = () => {
     const [message, setMessage] = useState("");
@@ -35,12 +36,12 @@ const Verify = () => {
     };
 
     return (
-        <>
-            <div>
-                <h2> Email Verification </h2>
-                <p> {message} </p>
+        <div className={Styles.container}>
+            <div className={Styles.messageBox}>
+                <div className={Styles.messageTitle}> Email Verification </div>
+                <div className={Styles.messageContent}> {message} </div>
             </div>
-        </>
+        </div>
     );
 };
 

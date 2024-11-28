@@ -1,4 +1,5 @@
 import React, {useState} from "react";
+import Styles from "../styles/Register.module.css"
 
 const Register = () => {
     const [username, setUsername] = useState("");
@@ -25,33 +26,18 @@ const Register = () => {
     };
 
     return (
-        <>
-            <div>
-                <h2> Register </h2>
-                <input
-                    type="text"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-                <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
-                <input
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <button onClick={handleRegister}> Register </button>
+        <div className={Styles.container}>
+            <div className={Styles.registerForm}>
+                <div className={Styles.registerTitle}> Register </div>
+                <input className={Styles.registerInput} type="text" placeholder="Enter your username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                <br/>
+                <input className={Styles.registerInput} type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <br/>
+                <input className={Styles.registerInput} type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <br/>
+                <button className={Styles.registerButton} onClick={handleRegister}> Register </button>
             </div>
-        </>
+        </div>
     );
 };
 

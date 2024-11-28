@@ -1,5 +1,6 @@
 import React, {useState} from "react";
 import {useAuth} from "./AuthContext";
+import Styles from "../styles/Login.module.css"
 
 const Login = () => {
     const [username, setUsername] = useState("");
@@ -27,26 +28,16 @@ const Login = () => {
     };
 
     return (
-        <>
-            <div>
-                <h2> Login </h2>
-                <input
-                    type="text"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-                <input
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <button onClick={handleLogin}> Log In </button>
+        <div className={Styles.container}>
+            <div className={Styles.loginForm}>
+                <div className={Styles.loginTitle}> Login </div>
+                <input className={Styles.loginInput} type="text" placeholder="Enter your username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                <br/>
+                <input className={Styles.loginInput} type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <br/>
+                <button className={Styles.loginButton} onClick={handleLogin}> Log In </button>
             </div>
-        </>
+        </div>
     );
 }
 

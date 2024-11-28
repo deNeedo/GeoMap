@@ -24,18 +24,10 @@ const App = () => {
                     </Routes>
                 </div>
                 <div className={Styles.bottomMenu}>
-                    <button className={Styles.bottomMenuButton}>
-                        <Link to="/"> Home </Link>
-                    </button>
-                    <button className={Styles.bottomMenuButton}>
-                        <Link to="/login"> Login </Link>
-                    </button>
-                    <button className={Styles.bottomMenuButton}>
-                        <Link to="/register"> Register </Link>
-                    </button>
-                    <button className={Styles.bottomMenuButton}>
-                        <Link to="/about"> About </Link>
-                    </button>
+                    <Link className={Styles.bottomMenuLink} to="/"> <button className={Styles.bottomMenuButton}> Home </button> </Link>
+                    <Link className={Styles.bottomMenuLink} to="/login"> <button className={Styles.bottomMenuButton}> Login </button> </Link>
+                    <Link className={Styles.bottomMenuLink} to="/register"> <button className={Styles.bottomMenuButton}> Register </button> </Link>
+                    <Link className={Styles.bottomMenuLink} to="/about"> <button className={Styles.bottomMenuButton}> About </button> </Link>
                 </div>
             </div>
         </BrowserRouter>

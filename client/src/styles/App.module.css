@@ -23,13 +23,17 @@
     top: 90vh;
 }
 
+.bottomMenuLink {
+	text-decoration: none;
+    margin-left: 5vw;
+    margin-right: 10vw;
+}
+
 .bottomMenuButton {
     position: relative;
     height: 5vh;
     margin-top: 2vh;
     width: 8vw;
-    left: 5vw;
-    margin-right: 15vw;
     background-color: #333;
     border: 1px solid #999;
     border-radius: 5%;
