@@ -1,0 +1,49 @@
+.container {
+    display: grid;
+}
+
+.description {
+    grid-column: 1;
+    height: 100vh;
+    width: 90vw;
+    background-color: #222;
+    text-align: justify;
+}
+
+.descriptionTitle {
+    margin: 5vw 0vw 2vw 5vw;
+    font-size: 3vh;
+    font-weight: bold;
+}
+
+.descriptionText {
+    margin: 0vw 5vw 0vw 5vw;
+    font-size: 2vh;
+}
+
+.technologies {
+    grid-column: 2;
+    height: 100vh;
+    width: 10vw;
+    background-color: #222;
+}
+
+.technologiesLabel {
+    margin-top: 5vw;
+    font-size: 2vh;
+}
+
+.technologiesLink {
+    text-decoration: none;
+}
+
+.iconsBox {
+    margin-top: 2vw;
+}
+
+.icon {
+    margin: 0vw 2vw 2vw 2vw;
+    height: 6vh;
+    width: 6vh;
+}
+
