@@ -1,24 +1,16 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {useLocation} from "react-router-dom";
+import {useAuth} from "../components/AuthContext.jsx";
 import Styles from "../styles/Verify.module.css"
 
 const Verify = () => {
+    const {serverIP, serverPORT} = useAuth();
     const [message, setMessage] = useState("");
     const location = useLocation();
 
-    useEffect(() => {
-        const queryParams = new URLSearchParams(location.search);
-        const token = queryParams.get("token");
-        if (token) {
-            handleVerifyEmail(token);
-        } else {
-            setMessage("No verification token provided.");
-        }
-    }, [location]);
-
-    const handleVerifyEmail = async (token) => {
+    const handleVerifyEmail = useCallback(async(token) => {
         try {
-            const response = await fetch(`http://10.147.17.201:8080/verify?token=${token}`, {
+            const response = await fetch(`http://${serverIP}:${serverPORT}/verify?token=${token}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -33,7 +25,17 @@ const Verify = () => {
             console.error("Error during email verification:", error);
             setMessage("Email verification failed.");
         }
-    };
+    }, [serverIP, serverPORT]);
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const token = queryParams.get("token");
+        if (token) {
+            handleVerifyEmail(token);
+        } else {
+            setMessage("No verification token provided.");
+        }
+    }, [location, handleVerifyEmail]);
 
     return (
         <div className={Styles.container}>

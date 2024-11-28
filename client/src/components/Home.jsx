@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import {Line} from 'react-chartjs-2';
 import {Chart, registerables} from 'chart.js';
 import Styles from "../styles/Home.module.css"
-import { useAuth } from "./AuthContext";
+import {useAuth} from "../components/AuthContext.jsx";
 
 Chart.register(...registerables);
 
@@ -30,7 +30,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const Home = () => {
-    const {authToken, logout} = useAuth();
+    const {authToken, logout, serverIP, serverPORT} = useAuth();
     const [message, setMessage] = useState("No errors so far");
     const [distance, setDistance] = useState("0km");
     const [area, setArea] = useState("0km^2")
@@ -46,9 +46,12 @@ const Home = () => {
         }]
     })
 
+    // const serverIP = process.env.REACT_APP_SERVER_IP;
+    // const serverPORT = process.env.REACT_APP_SERVER_PORT;
+
     const handleLogout = async () => {
         try {
-            await fetch(`http://10.147.17.201:8080/logout1`, {
+            await fetch(`http://${serverIP}:${serverPORT}/logout1`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -66,7 +69,7 @@ const Home = () => {
             console.log("Add some markers before saving..."); return;
         }
         try {
-            const response = await fetch(`http://10.147.17.201:8080/saveCollection`, {
+            const response = await fetch(`http://${serverIP}:${serverPORT}/saveCollection`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -90,7 +93,7 @@ const Home = () => {
             console.log("Clear all the markers before loading..."); return;
         }
         try {
-            const response = await fetch(`http://10.147.17.201:8080/loadCollection`, {
+            const response = await fetch(`http://${serverIP}:${serverPORT}/loadCollection`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

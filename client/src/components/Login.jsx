@@ -1,15 +1,16 @@
 import React, {useState} from "react";
-import {useAuth} from "./AuthContext";
 import Styles from "../styles/Login.module.css"
+import {useAuth} from "../components/AuthContext.jsx";
 
 const Login = () => {
+    const {serverIP, serverPORT} = useAuth();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const {login} = useAuth();
 
     const handleLogin = async () => {
         try {
-            const response = await fetch(`http://10.147.17.201:8080/login`, {
+            const response = await fetch(`http://${serverIP}:${serverPORT}/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

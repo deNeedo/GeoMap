@@ -1,14 +1,16 @@
 import React, {useState} from "react";
+import {useAuth} from "../components/AuthContext.jsx";
 import Styles from "../styles/Register.module.css"
 
 const Register = () => {
+    const {serverIP, serverPORT} = useAuth();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const handleRegister = async () => {
         try {
-            const response = await fetch(`http://10.147.17.201:8080/register`, {
+            const response = await fetch(`http://${serverIP}:${serverPORT}/register`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
