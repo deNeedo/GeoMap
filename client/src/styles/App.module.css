@@ -1,6 +1,7 @@
-html, body {
+* {
     margin: 0;
     padding: 0;
+    color: #999;
 }
 
 .container {
@@ -15,9 +16,25 @@ html, body {
 
 .bottomMenu {
     grid-row: 2;
-    background-color: #999;
+    background-color: #333;
     height: 10vh;
     width: 100vw;
     position: fixed;
     top: 90vh;
+}
+
+.bottomMenuButton {
+    position: relative;
+    height: 5vh;
+    margin-top: 2vh;
+    width: 8vw;
+    margin-left: 15vw;
+    background-color: #333;
+    border: 1px solid #999;
+    border-radius: 5%;
+}
+
+.bottomMenuButton:hover {
+    background-color: #222;
+    color: #aaa;
 }

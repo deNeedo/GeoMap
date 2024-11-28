@@ -4,9 +4,43 @@
 
 .sideMenu {
     grid-column: 1;
-    background-color: #aaa;
+    background-color: #333;
     height: 90vh;
     width: 10vw;
+}
+
+.storage {
+    grid-row: 1;
+    height: 40vh;
+    width: 10vw;
+}
+
+.calculations {
+    grid-row: 2;
+    height: 40vh;
+    width: 10vw;
+}
+
+.logout {
+    grid-row: 3;
+    height: 10vh;
+    width: 10vw;
+}
+
+.sideMenuButton {
+    position: relative;
+    height: 5vh;
+    margin-top: 2vh;
+    width: 8vw;
+    left: 1vw;
+    background-color: #333;
+    border: 1px solid #999;
+    border-radius: 5%;
+}
+
+.sideMenuButton:hover {
+    background-color: #222;
+    color: #aaa;
 }
 
 .map {
