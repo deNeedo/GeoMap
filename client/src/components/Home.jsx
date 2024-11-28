@@ -31,9 +31,9 @@ L.Icon.Default.mergeOptions({
 
 const Home = () => {
     const {authToken, logout} = useAuth();
-    const [message, setMessage] = useState("");
-    const [distance, setDistance] = useState("0 km");
-    const [area, setArea] = useState("0 km^2")
+    const [message, setMessage] = useState("No errors so far");
+    const [distance, setDistance] = useState("0km");
+    const [area, setArea] = useState("0km^2")
     const [position, setPosition] = useState({lat: null, lon: null});
     const [markers, setMarkers] = useState([]);
     const [lineCoordinates, setLineCoordinates] = useState([]);
@@ -45,7 +45,7 @@ const Home = () => {
             fill: false,
         }]
     })
-    
+
     const handleLogout = async () => {
         try {
             await fetch(`http://10.147.17.201:8080/logout1`, {
@@ -220,18 +220,17 @@ const Home = () => {
                 }
             }
             if (elevationPoints.length <= 100) {
-                setMessage("")
+                setMessage("No errors so far")
                 const elevations = await fetchElevationAlongPath(elevationPoints);
                 for (let b = 0; b < elevations.length; b += 1) {
                     totalElevations.push(elevations[b]);
                     totalLabels.push(b);
                 }
             } else {
-                setMessage("Too long distance for terrain profile")
+                setMessage("100km distance limit for terrain profile")
             }
-
             setLineCoordinates(totalPoints);
-            setDistance(`Distance: ${totalDistance.toFixed(3)}km`)
+            setDistance(`${totalDistance.toFixed(3)}km`)
             setChartData({
                 labels: totalLabels,
                 datasets: [{
@@ -250,8 +249,10 @@ const Home = () => {
                 }],
             })
             setLineCoordinates([]);
-            setDistance("0 km")
+            setDistance("0km")
+            setMessage("No errors so far")
         }
+        setArea("0km^2")
     }, [markers])
 
     const closePolygon = () => {
@@ -313,10 +314,11 @@ const Home = () => {
                 temp += Math.atan(first_part * second_part) * 2
             }
             temp = temp * Math.pow(R, 2)
-            setMessage("")
-            setArea(`Area: ${Math.abs(temp).toFixed(3)}km^2`)
+            setMessage("No errors so far")
+            setArea(`${Math.abs(temp).toFixed(3)}km^2`)
         } else {
-            setMessage("Need to close the polygon first")
+            setMessage("Not a closed figure")
+            setArea("0km^2")
         }
     }
 
@@ -354,6 +356,31 @@ const Home = () => {
         <>
         {position.lat != null ? (
             <div className={Styles.container}>
+                <div className={Styles.map}>
+                    <MapContainer style={{height:"100%", width:"100%"}} center={position} zoom={8} worldCopyJump={true}>
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                        />
+                        <LocationLogger />
+                        {markers.map((marker, index) => (
+                            <Marker key={index} position={marker}>
+                                <Popup>
+                                    <p> Latitude: {marker.lat} </p>
+                                    <p> Longitude: {marker.lng} </p>
+                                    <p> Elevation: {marker.elev} </p>
+                                    <button onClick={(e) => {e.stopPropagation(); deleteMarker(index);}}> Delete </button>
+                                </Popup>
+                            </Marker>
+                        ))}
+                        <Marker position={position}> <Popup> Your IP address location </Popup> </Marker>
+                        {lineCoordinates.length > 0 && (
+                            <Polyline positions={lineCoordinates} color="blue" />
+                        )}
+                        <Polyline positions={[[90, 180], [-90, 180]]} color="red" dashArray="10, 10" />
+                        <Polyline positions={[[90, -180], [-90, -180]]} color="red" dashArray="10, 10" />
+                    </MapContainer>
+                </div>
                 <div className={Styles.sideMenu}>
                     <div className={Styles.container}>
                         <div className={Styles.storage}>
@@ -372,41 +399,25 @@ const Home = () => {
                             <button className={Styles.sideMenuButton} onClick={handleLogout}> Logout </button>
                         </div>
                     </div>
-
-                    <div> {distance} </div>
-                    <div> {area} </div>
-                    <div> {message} </div>
-                    <div className={Styles.chart}>
-                        <Line options={chart_options} data={chartData} />
-                    </div>
                 </div>
-                <div className={Styles.map}>
-                        <MapContainer style={{height:"100%", width:"100%"}} center={position} zoom={8} worldCopyJump={true}>
-                            <TileLayer
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
-                            />
-                            <LocationLogger />
-                            {markers.map((marker, index) => (
-                                <Marker key={index} position={marker}>
-                                    <Popup>
-                                        <p> Latitude: {marker.lat} </p>
-                                        <p> Longitude: {marker.lng} </p>
-                                        <p> Elevation: {marker.elev} </p>
-                                        <button onClick={(e) => {e.stopPropagation(); deleteMarker(index);}}> Delete </button>
-                                    </Popup>
-                                </Marker>
-                            ))}
-                            <Marker position={position}> <Popup> Your IP address location </Popup> </Marker>
-                            {lineCoordinates.length > 0 && (
-                                <Polyline positions={lineCoordinates} color="blue" />
-                            )}
-                            <Polyline positions={[[90, 180], [-90, 180]]} color="red" dashArray="10, 10" />
-                            <Polyline positions={[[90, -180], [-90, -180]]} color="red" dashArray="10, 10" />
-                        </MapContainer>
+                {/* overlay elements */}
+                <div className={Styles.chart}>
+                    <Line options={chart_options} data={chartData} />
+                </div>
+                <div className={Styles.info}>
+                    <div className={Styles.infoEntry}> Distance: {distance} </div>
+                    <div className={Styles.infoEntry}> Area: {area} </div>
+                </div>
+                <div className={Styles.messageBox}> 
+                    <div className={Styles.messageBoxEntry}> {message} </div>
                 </div>
             </div>
-        ) : "Could not determine your IP location"} </>
+        ) : (
+            <div className={Styles.messageBox}> 
+                <div className={Styles.messageBoxEntry}> Waiting for your IP location... </div>
+            </div>
+        )}
+        </>
     );
 };
 
